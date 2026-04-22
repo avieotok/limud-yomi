@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#8B4513">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="הלימוד היומי">
+<title>הלימוד היומי 📖</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Fonts: Hebrew fonts for beautiful text -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, get, update, onValue, onDisconnect, remove, push, child, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // Same Firebase project as Maashir Yeda - different data path
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbRsjWhqeyYuvpQreJlMtTGHq0HYHnNMc",
+    authDomain: "maashir-yeda.firebaseapp.com",
+    databaseURL: "https://maashir-yeda-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "maashir-yeda",
+    storageBucket: "maashir-yeda.firebasestorage.app",
+    messagingSenderId: "260414981701",
+    appId: "1:260414981701:web:limud-yomi"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // All Limud Yomi data goes under "limudYomi/" path - separate from Maashir Yeda
+  const LIMUD_PREFIX = 'limudYomi/';
+
+  window.FB = {
+    ref: (p) => ref(db, LIMUD_PREFIX + p),
+    set: (p, v) => set(ref(db, LIMUD_PREFIX + p), v),
+    get: (p) => get(ref(db, LIMUD_PREFIX + p)),
+    update: (p, v) => update(ref(db, LIMUD_PREFIX + p), v),
+    onValue: (p, cb) => onValue(ref(db, LIMUD_PREFIX + p), cb),
+    onDisconnect: (p) => onDisconnect(ref(db, LIMUD_PREFIX + p)),
+    remove: (p) => remove(ref(db, LIMUD_PREFIX + p)),
+    push: (p) => push(ref(db, LIMUD_PREFIX + p)),
+    serverTimestamp: () => serverTimestamp(),
+  };
+  window.FB_READY = true;
+
+  // Fire an event
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<style>
+:root {
+  --brown: #8B4513;
+  --brown-dark: #6B3410;
+  --brown-light: #B8762E;
+  --gold: #D4A437;
+  --gold-light: #F5C842;
+  --cream: #FAF5EB;
+  --cream-dark: #F0E5C9;
+  --olive: #6B7F3F;
+  --olive-light: #8FA055;
+  --parchment: #FFF8E7;
+  --ink: #2C1810;
+  --ink-light: #4A3020;
+  --muted: #6B5B4D;
+  --border: #D4C7B0;
+  --white: #FFFFFF;
+  --shadow: rgba(139, 69, 19, 0.15);
+  --success: #16A34A;
+  --warning: #F59E0B;
+  --error: #DC2626;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  min-height: 100%;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+  direction: rtl;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Parchment background pattern */
+body {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(212, 164, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139, 69, 19, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--white);
+  box-shadow: 0 0 40px var(--shadow);
+  position: relative;
+}
+
+/* ==================== HEADER ==================== */
+.header {
+  background: linear-gradient(135deg, var(--brown) 0%, var(--brown-dark) 100%);
+  color: var(--cream);
+  padding: 20px 18px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(212, 164, 55, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(212, 164, 55, 0.1) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.header-crown {
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+
+.header h1 {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.header-subtitle {
+  font-size: 13px;
+  color: var(--gold-light);
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.hebrew-date {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: rgba(212, 164, 55, 0.15);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.main-content {
+  padding: 20px 16px 100px;
+}
+
+/* Today's learning card */
+.today-card {
+  background: linear-gradient(135deg, var(--parchment) 0%, var(--cream-dark) 100%);
+  border: 2px solid var(--gold);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.today-card::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(212, 164, 55, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.today-label {
+  color: var(--brown);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.today-title {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.today-reference {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.today-preview {
+  background: var(--white);
+  border-right: 4px solid var(--gold);
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--ink-light);
+  margin-bottom: 14px;
+  min-height: 80px;
+}
+
+.today-preview.loading {
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.today-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--brown) 0%, var(--brown-dark) 100%);
+  color: var(--cream);
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+  transition: all 0.2s;
+}
+
+.today-btn:active {
+  transform: scale(0.98);
+}
+
+/* Section titles */
+.section-title {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--brown);
+  margin: 20px 0 12px;
+  padding: 0 4px;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  background: var(--gold);
+  margin-top: 6px;
+  border-radius: 2px;
+}
+
+/* Book grid */
+.books-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.book-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.book-card:active {
+  transform: scale(0.97);
+}
+
+.book-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--brown);
+  transition: height 0.2s;
+}
+
+.book-card.mishna::before { background: linear-gradient(90deg, #8B4513, #D4A437); }
+.book-card.shulchan::before { background: linear-gradient(90deg, #6B7F3F, #8FA055); }
+.book-card.kitzur::before { background: linear-gradient(90deg, #A0522D, #CD853F); }
+.book-card.rambam::before { background: linear-gradient(90deg, #8B0000, #CD5C5C); }
+.book-card.chafetz::before { background: linear-gradient(90deg, #4B0082, #8B4789); }
+.book-card.tanya::before { background: linear-gradient(90deg, #1E3A8A, #3B82F6); }
+
+.book-emoji {
+  font-size: 36px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.book-name {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.book-desc {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Action buttons row */
+.actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.action-btn {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.action-btn:active {
+  transform: scale(0.98);
+  background: var(--cream);
+}
+
+.action-btn-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.action-btn-text {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Loading state */
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--cream-dark);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== BOTTOM NAVIGATION ==================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 0;
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.nav-btn.active {
+  color: var(--brown);
+}
+
+.nav-btn-icon {
+  font-size: 22px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.nav-btn-text {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ==================== MODAL / SCREENS ==================== */
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Text viewer */
+.text-viewer {
+  padding: 20px 18px 100px;
+}
+
+.text-header {
+  text-align: center;
+  padding: 16px 0;
+  border-bottom: 2px solid var(--gold);
+  margin-bottom: 20px;
+}
+
+.text-title {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--brown);
+  margin-bottom: 4px;
+}
+
+.text-reference {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.text-content {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 19px;
+  line-height: 2;
+  color: var(--ink);
+  background: var(--parchment);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.text-content p {
+  margin-bottom: 14px;
+  text-align: justify;
+}
+
+.text-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.text-action-btn {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.text-action-btn.primary {
+  background: linear-gradient(135deg, var(--brown), var(--brown-dark));
+  color: var(--cream);
+  border-color: var(--brown-dark);
+}
+
+/* Back button */
+.btn-back {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--brown);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Streak display */
+.streak-display {
+  background: linear-gradient(135deg, #D4A437, #F5C842);
+  color: var(--brown-dark);
+  padding: 12px 16px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(212, 164, 55, 0.3);
+}
+
+.streak-icon {
+  font-size: 28px;
+}
+
+.streak-count {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.streak-label {
+  font-size: 12px;
+  color: var(--brown-dark);
+  opacity: 0.8;
+}
+
+/* Info banner */
+.info-banner {
+  background: #FEF3C7;
+  border-right: 4px solid var(--gold);
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* Responsive adjustments for very small screens */
+@media (max-width: 360px) {
+  .header h1 { font-size: 26px; }
+  .today-title { font-size: 19px; }
+  .book-emoji { font-size: 30px; }
+  .book-name { font-size: 14px; }
+}
+
+/* Welcome/Onboarding */
+.welcome-screen {
+  padding: 40px 24px;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--cream) 0%, var(--parchment) 100%);
+}
+
+.welcome-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.welcome-title {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--brown);
+  margin-bottom: 10px;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+
+.welcome-feature {
+  background: var(--white);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: right;
+}
+
+.welcome-feature-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.welcome-feature-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.welcome-start-btn {
+  background: linear-gradient(135deg, var(--brown), var(--brown-dark));
+  color: var(--cream);
+  border: none;
+  padding: 16px;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+}
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-crown">📖</div>
+      <h1>הלימוד היומי</h1>
+      <div class="header-subtitle">משניות · שולחן ערוך · קיצור שולחן ערוך</div>
+      <div class="hebrew-date" id="hebrew-date-display">טוען תאריך...</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Streak Display -->
+    <div class="streak-display" id="streak-display" style="display: none;">
+      <div class="streak-icon">🔥</div>
+      <div style="flex: 1;">
+        <div class="streak-count" id="streak-count">0</div>
+        <div class="streak-label">ימים רצופים של לימוד</div>
+      </div>
+    </div>
+
+    <!-- Today's learning -->
+    <div class="today-card">
+      <div class="today-label">📚 הלימוד של היום</div>
+      <div class="today-title" id="today-title">משנה יומית</div>
+      <div class="today-reference" id="today-reference">טוען...</div>
+      <div class="today-preview loading" id="today-preview">
+        <span class="loader"></span>
+        <span>מביא את הלימוד של היום...</span>
+      </div>
+      <button class="today-btn" id="today-btn" onclick="openTodayLearning()">
+        📖 פתיחת הלימוד המלא
+      </button>
+    </div>
+
+    <!-- Books grid -->
+    <div class="section-title">📚 הספרים</div>
+    <div class="books-grid">
+      <div class="book-card mishna" onclick="openBook('mishna')">
+        <span class="book-emoji">📜</span>
+        <div class="book-name">משניות</div>
+        <div class="book-desc">6 סדרים</div>
+      </div>
+      <div class="book-card shulchan" onclick="openBook('shulchan')">
+        <span class="book-emoji">🕯️</span>
+        <div class="book-name">שולחן ערוך</div>
+        <div class="book-desc">4 חלקים</div>
+      </div>
+      <div class="book-card kitzur" onclick="openBook('kitzur')">
+        <span class="book-emoji">📕</span>
+        <div class="book-name">קיצור שו"ע</div>
+        <div class="book-desc">221 סימנים</div>
+      </div>
+      <div class="book-card rambam" onclick="openBook('rambam')">
+        <span class="book-emoji">📗</span>
+        <div class="book-name">רמב"ם</div>
+        <div class="book-desc">יד החזקה</div>
+      </div>
+      <div class="book-card chafetz" onclick="openBook('chafetz')">
+        <span class="book-emoji">📘</span>
+        <div class="book-name">חפץ חיים</div>
+        <div class="book-desc">שמירת הלשון</div>
+      </div>
+      <div class="book-card tanya" onclick="openBook('tanya')">
+        <span class="book-emoji">📙</span>
+        <div class="book-name">תניא</div>
+        <div class="book-desc">יומי</div>
+      </div>
+    </div>
+
+    <!-- Actions row -->
+    <div class="section-title">🎯 עוד</div>
+    <div class="actions-row">
+      <button class="action-btn" onclick="showComingSoon('פרשת השבוע')">
+        <span class="action-btn-icon">🕎</span>
+        <span class="action-btn-text">פרשת השבוע</span>
+      </button>
+      <button class="action-btn" onclick="showComingSoon('חברותא')">
+        <span class="action-btn-icon">🤝</span>
+        <span class="action-btn-text">חברותא</span>
+      </button>
+      <button class="action-btn" onclick="showComingSoon('שאל רב')">
+        <span class="action-btn-icon">🙏</span>
+        <span class="action-btn-text">שאל רב</span>
+      </button>
+      <button class="action-btn" onclick="showComingSoon('הקדשת לימוד')">
+        <span class="action-btn-icon">💝</span>
+        <span class="action-btn-text">הקדשת לימוד</span>
+      </button>
+    </div>
+
+    <div class="info-banner">
+      💡 <strong>ברוכים הבאים!</strong> האפליקציה עודנה בפיתוח - ניתן ללמוד משנה יומית, ובקרוב יתווספו עוד פיצ'רים.
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showHome()">
+      <span class="nav-btn-icon">🏠</span>
+      <span class="nav-btn-text">בית</span>
+    </button>
+    <button class="nav-btn" onclick="showSearch()">
+      <span class="nav-btn-icon">🔍</span>
+      <span class="nav-btn-text">חיפוש</span>
+    </button>
+    <button class="nav-btn" onclick="showProgress()">
+      <span class="nav-btn-icon">📊</span>
+      <span class="nav-btn-text">התקדמות</span>
+    </button>
+    <button class="nav-btn" onclick="showSettings()">
+      <span class="nav-btn-icon">⚙️</span>
+      <span class="nav-btn-text">הגדרות</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ========== STATE ==========
+const STORAGE_KEY = 'limud_yomi_state_v1';
+
+let state = {
+  lastLearnedDate: null,
+  streak: 0,
+  completedDays: [],
+  currentBook: null,
+  todayMishna: null,
+  todayDate: null
+};
+
+// Load state from localStorage
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      state = { ...state, ...JSON.parse(saved) };
+    }
+  } catch (e) {
+    console.warn('Failed to load state:', e);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Failed to save state:', e);
+  }
+}
+
+// ========== HEBREW DATE ==========
+function getHebrewDate() {
+  try {
+    const today = new Date();
+    const formatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    return formatter.format(today);
+  } catch (e) {
+    const today = new Date();
+    return today.toLocaleDateString('he-IL');
+  }
+}
+
+function getTodayString() {
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
+}
+
+// ========== STREAK ==========
+function updateStreak() {
+  const today = getTodayString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  if (state.lastLearnedDate === today) {
+    // Already learned today
+    return;
+  } else if (state.lastLearnedDate === yesterdayStr) {
+    // Consecutive day - streak continues
+    state.streak++;
+  } else if (!state.lastLearnedDate) {
+    // First time
+    state.streak = 1;
+  } else {
+    // Broken streak
+    state.streak = 1;
+  }
+  state.lastLearnedDate = today;
+  if (!state.completedDays.includes(today)) {
+    state.completedDays.push(today);
+  }
+  saveState();
+  renderStreak();
+}
+
+function renderStreak() {
+  const display = document.getElementById('streak-display');
+  const count = document.getElementById('streak-count');
+  if (state.streak > 0) {
+    display.style.display = 'flex';
+    count.textContent = state.streak;
+  } else {
+    display.style.display = 'none';
+  }
+}
+
+// ========== SEFARIA API ==========
+// Fetch today's Mishna Yomit from Sefaria calendar API
+async function fetchTodayMishna() {
+  try {
+    // Try the calendar API for Mishnah Yomit
+    const response = await fetch('https://www.sefaria.org/api/calendars');
+    if (!response.ok) throw new Error('Failed to fetch calendar');
+
+    const data = await response.json();
+
+    // Find Mishnah Yomit in the calendar items
+    const calendarItems = data.calendar_items || [];
+    const mishnaYomit = calendarItems.find(item =>
+      item.title && (item.title.en === 'Daily Mishnayot' || item.title.he === 'משנה יומית')
+    );
+
+    if (mishnaYomit) {
+      return {
+        title: mishnaYomit.title.he || 'משנה יומית',
+        displayValue: mishnaYomit.displayValue.he || '',
+        ref: mishnaYomit.ref || mishnaYomit.url || ''
+      };
+    }
+
+    return null;
+  } catch (e) {
+    console.warn('Failed to fetch Mishna:', e);
+    return null;
+  }
+}
+
+// Fetch the actual text of a specific reference
+async function fetchSefariaText(ref) {
+  try {
+    const encoded = encodeURIComponent(ref);
+    const response = await fetch(`https://www.sefaria.org/api/v3/texts/${encoded}?version=hebrew`);
+    if (!response.ok) throw new Error('Failed to fetch text');
+    const data = await response.json();
+    return data;
+  } catch (e) {
+    console.warn('Failed to fetch text:', e);
+    return null;
+  }
+}
+
+// ========== RENDER TODAY ==========
+async function renderToday() {
+  const titleEl = document.getElementById('today-title');
+  const refEl = document.getElementById('today-reference');
+  const previewEl = document.getElementById('today-preview');
+
+  const mishna = await fetchTodayMishna();
+
+  if (mishna) {
+    state.todayMishna = mishna;
+    titleEl.textContent = mishna.title;
+    refEl.textContent = mishna.displayValue;
+
+    // Try to fetch the text preview
+    previewEl.classList.add('loading');
+    previewEl.innerHTML = '<span class="loader"></span><span>טוען את הטקסט...</span>';
+
+    const textData = await fetchSefariaText(mishna.ref);
+
+    if (textData && textData.versions && textData.versions[0]) {
+      const text = textData.versions[0].text;
+      let preview = '';
+
+      if (typeof text === 'string') {
+        preview = text;
+      } else if (Array.isArray(text)) {
+        // Flatten nested arrays and take first few
+        const flat = text.flat(Infinity).filter(t => typeof t === 'string');
+        preview = flat.slice(0, 2).join(' ');
+      }
+
+      // Clean HTML tags
+      preview = preview.replace(/<[^>]+>/g, '').trim();
+
+      // Limit to ~150 chars
+      if (preview.length > 200) {
+        preview = preview.substring(0, 200) + '...';
+      }
+
+      if (preview) {
+        previewEl.classList.remove('loading');
+        previewEl.textContent = preview;
+      } else {
+        previewEl.classList.remove('loading');
+        previewEl.textContent = 'לחץ על הכפתור כדי לפתוח את הלימוד המלא';
+      }
+    } else {
+      previewEl.classList.remove('loading');
+      previewEl.textContent = 'לחץ על הכפתור כדי לפתוח את הלימוד המלא';
+    }
+  } else {
+    titleEl.textContent = 'משנה יומית';
+    refEl.textContent = 'לא הצלחנו לטעון - נסה שוב מאוחר יותר';
+    previewEl.classList.remove('loading');
+    previewEl.innerHTML = '📡 אנא וודא שיש חיבור אינטרנט';
+  }
+}
+
+// ========== ACTIONS ==========
+function openTodayLearning() {
+  if (state.todayMishna && state.todayMishna.ref) {
+    // For now, open in Sefaria
+    const url = `https://www.sefaria.org/${encodeURIComponent(state.todayMishna.ref)}?lang=he`;
+    window.open(url, '_blank');
+    // Mark as learned
+    updateStreak();
+  } else {
+    alert('עוד לא הצלחנו לטעון את הלימוד היומי. אנא נסה שוב.');
+  }
+}
+
+function openBook(bookId) {
+  const names = {
+    mishna: 'משניות',
+    shulchan: 'שולחן ערוך',
+    kitzur: 'קיצור שולחן ערוך',
+    rambam: 'רמב"ם',
+    chafetz: 'חפץ חיים',
+    tanya: 'תניא'
+  };
+
+  alert(`📚 ${names[bookId]}\n\nבעוד מספר שיחות פיתוח נוכל לפתוח את הספר המלא כאן באפליקציה.\n\nבינתיים - אפשר ללמוד את המשנה היומית!`);
+}
+
+function showComingSoon(name) {
+  alert(`🚧 ${name}\n\nהפיצר הזה בבנייה - יהיה זמין בקרוב!\n\nבינתיים - אפשר ללמוד את המשנה היומית!`);
+}
+
+function showHome() {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.nav-btn').classList.add('active');
+}
+
+function showSearch() {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.nav-btn').classList.add('active');
+  alert("🔍 חיפוש\n\nהפיצ'ר הזה בבנייה - יהיה זמין בקרוב!");
+}
+
+function showProgress() {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.nav-btn').classList.add('active');
+  const completed = state.completedDays.length;
+  alert(`📊 התקדמות\n\n🔥 רצף נוכחי: ${state.streak} ימים\n📚 סה"כ ימי לימוד: ${completed}\n\nעוד סטטיסטיקות יתווספו בקרוב!`);
+}
+
+function showSettings() {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.nav-btn').classList.add('active');
+  alert("⚙️ הגדרות\n\nהפיצ'ר הזה בבנייה - יהיה זמין בקרוב!");
+}
+
+window.openTodayLearning = openTodayLearning;
+window.openBook = openBook;
+window.showComingSoon = showComingSoon;
+window.showHome = showHome;
+window.showSearch = showSearch;
+window.showProgress = showProgress;
+window.showSettings = showSettings;
+
+// ========== INIT ==========
+loadState();
+document.getElementById('hebrew-date-display').textContent = getHebrewDate();
+renderStreak();
+renderToday();
+
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.warn('SW failed:', err));
+  });
+}
+</script>
+
+</body>
+</html>
