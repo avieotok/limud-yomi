@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>פלייר - הלימוד היומי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #EAE0CC;
+    font-family: 'Heebo', sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    gap: 22px;
+  }
+
+  .instructions {
+    background: #FFF;
+    border-right: 4px solid #D4A437;
+    padding: 16px 20px;
+    border-radius: 8px;
+    max-width: 520px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #5B3C11;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .instructions strong { color: #8B4513; }
+
+  .flyer {
+    width: 148mm;
+    height: 210mm;
+    background: linear-gradient(180deg, #FDF6E3 0%, #F5EED9 100%);
+    border: 3px double #D4A437;
+    border-radius: 12px;
+    padding: 20mm 14mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    color: #5B3C11;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+
+  .flyer::before, .flyer::after {
+    content: '✦';
+    position: absolute;
+    color: #D4A437;
+    font-size: 28px;
+  }
+  .flyer::before { top: 8mm; right: 8mm; }
+  .flyer::after { top: 8mm; left: 8mm; }
+
+  .flyer-crown {
+    font-size: 64px;
+    margin-bottom: 8px;
+  }
+
+  .flyer-title {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .flyer-subtitle {
+    font-size: 14px;
+    color: #8B4513;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .flyer-divider {
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #D4A437, transparent);
+    margin: 14px 0;
+  }
+
+  .flyer-desc {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    max-width: 110mm;
+    font-weight: 500;
+  }
+
+  .flyer-features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+    width: 100%;
+    max-width: 110mm;
+  }
+
+  .flyer-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.5);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 164, 55, 0.3);
+  }
+
+  .flyer-feature-icon {
+    font-size: 20px;
+  }
+
+  .flyer-feature-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: #5B3C11;
+  }
+
+  .flyer-qr-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #8B4513;
+    margin-bottom: 8px;
+  }
+
+  .flyer-qr-wrap {
+    background: #FFF;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #D4A437;
+    margin-bottom: 10px;
+  }
+
+  .flyer-qr-wrap img {
+    width: 44mm;
+    height: 44mm;
+    display: block;
+  }
+
+  .flyer-url {
+    font-family: 'Heebo', monospace;
+    font-size: 11px;
+    color: #8B4513;
+    letter-spacing: 0.3px;
+    direction: ltr;
+    margin-bottom: 8px;
+  }
+
+  .flyer-cta {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #5B3C11;
+    font-style: italic;
+  }
+
+  .flyer-footer {
+    margin-top: auto;
+    font-size: 10px;
+    color: #8B7355;
+    padding-top: 8px;
+    font-weight: 600;
+  }
+
+  @media print {
+    html, body {
+      background: #FFF;
+      padding: 0;
+    }
+    body { padding: 0; gap: 0; }
+    .instructions { display: none; }
+    .flyer {
+      box-shadow: none;
+      page-break-inside: avoid;
+    }
+    @page {
+      size: A5;
+      margin: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="instructions">
+  <strong>📄 איך להדפיס:</strong><br>
+  1. לחץ <strong>Cmd+P</strong> (או File → Print)<br>
+  2. גודל נייר: <strong>A5</strong> (או A4 עם "Fit to page")<br>
+  3. לחץ "Print" → תלה בבית הכנסת!<br>
+  <br>
+  💡 <strong>טיפ:</strong> לשמירה כ-PDF — בחר ב-"Save as PDF" במקום מדפסת
+</div>
+
+<div class="flyer">
+  <div class="flyer-crown">📖</div>
+  <div class="flyer-title">הלימוד היומי</div>
+  <div class="flyer-subtitle">משנה · הלכה · פרשה · דף יומי</div>
+
+  <div class="flyer-divider"></div>
+
+  <div class="flyer-desc">
+    אפליקציה חינמית ללימוד יומי — במקום אחד, לכל אחד. <br>
+    הוקמה לעילוי נשמת יקירי משפחה ולזיכוי הרבים. 🕯️
+  </div>
+
+  <div class="flyer-features">
+    <div class="flyer-feature">
+      <span class="flyer-feature-icon">📚</span>
+      <span class="flyer-feature-text">לימודי קודש יומיים</span>
+    </div>
+    <div class="flyer-feature">
+      <span class="flyer-feature-icon">🤝</span>
+      <span class="flyer-feature-text">חברותא וקהילה</span>
+    </div>
+    <div class="flyer-feature">
+      <span class="flyer-feature-icon">🔥</span>
+      <span class="flyer-feature-text">מעקב רצף יומי</span>
+    </div>
+  </div>
+
+  <div class="flyer-qr-label">📱 סרוק עם מצלמת הטלפון</div>
+  <div class="flyer-qr-wrap">
+    <img src="data:image/png;base64,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" alt="QR Code">
+  </div>
+
+  <div class="flyer-url">avieotok.github.io/limud-yomi</div>
+
+  <div class="flyer-cta">בואו נקבע עתים לתורה 🙏</div>
+
+  <div class="flyer-footer">מוקדש בעמל ובאהבה לציבור היקר · תשפ"ו</div>
+</div>
+
+</body>
+</html>
