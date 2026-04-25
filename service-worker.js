@@ -9,7 +9,7 @@
  * To force all users to get a new version, bump CACHE_VERSION below.
  */
 
-const CACHE_VERSION = 'v87';
+const CACHE_VERSION = 'v88';
 const SHELL_CACHE   = `limud-yomi-shell-${CACHE_VERSION}`;
 const FONTS_CACHE   = `limud-yomi-fonts-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `limud-yomi-runtime-${CACHE_VERSION}`;

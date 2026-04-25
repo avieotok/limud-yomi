@@ -1,0 +1,63 @@
+{
+  "name": "הלימוד היומי",
+  "short_name": "הלימוד היומי",
+  "description": "לימוד תורה יומי: משנה, קיצור שולחן ערוך ופרשת השבוע. עם מעקב רצף אישי, חברותא, וחיפוש מלא בספרייה.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5E6C8",
+  "theme_color": "#8B4513",
+  "lang": "he",
+  "dir": "rtl",
+  "categories": ["education", "lifestyle", "books"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "משנה יומית",
+      "short_name": "משנה",
+      "description": "פתיחה ישירה ללימוד משנה יומית",
+      "url": "./?learn=mishna",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "קיצור שולחן ערוך",
+      "short_name": "הלכה",
+      "description": "פתיחה ישירה ללימוד הלכה יומית",
+      "url": "./?learn=kitzur",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "פרשת השבוע",
+      "short_name": "פרשה",
+      "description": "פתיחה ישירה לפרשת השבוע",
+      "url": "./?learn=parasha",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
