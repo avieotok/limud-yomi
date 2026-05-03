@@ -14858,7 +14858,8 @@ body.night-mode #nav-btn-nightmode {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 18px 0;
+  /* padding-top מתחשב ב-safe-area של iPhone notch / Android status bar */
+  padding: calc(16px + env(safe-area-inset-top)) 18px 0;
   gap: 10px;
 }
 
@@ -20185,7 +20186,7 @@ body.offline-mode .app-container {
       </button>
     </div>
 
-    <div class="screen-content" style="padding: 16px;">
+    <div class="screen-content" style="padding: 16px 16px 120px;">
       <div style="text-align: center; margin-bottom: 20px;">
         <div style="font-size: 48px; margin-bottom: 8px;">📜</div>
         <h1 style="margin: 0; font-size: 28px; color: var(--ink);">ספר משלי</h1>
@@ -21703,7 +21704,7 @@ body.offline-mode .app-container {
       </button>
     </div>
 
-    <div class="screen-content" style="padding: 16px; max-width: 720px; margin: 0 auto;">
+    <div class="screen-content" style="padding: 16px 16px 120px; max-width: 720px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="font-size: 56px; margin-bottom: 8px;">🎯</div>
         <h1 style="margin: 0; font-size: 28px; color: var(--ink);">וְשִׁנַּנְתָּם</h1>
@@ -21795,7 +21796,7 @@ body.offline-mode .app-container {
       </button>
     </div>
 
-    <div class="screen-content" style="padding: 16px; max-width: 720px; margin: 0 auto;">
+    <div class="screen-content" style="padding: 16px 16px 120px; max-width: 720px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 30px;">
         <div style="font-size: 56px; margin-bottom: 8px;">🎯</div>
         <h1 style="margin: 0; font-size: 28px; color: var(--ink);">וְשִׁנַּנְתָּם</h1>
@@ -23301,7 +23302,7 @@ body.offline-mode .app-container {
       </button>
     </div>
 
-    <div class="screen-content" style="padding: 16px; max-width: 720px; margin: 0 auto;">
+    <div class="screen-content" style="padding: 16px 16px 120px; max-width: 720px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="font-size: 56px; margin-bottom: 8px;">🌿</div>
         <h1 style="margin: 0; font-size: 28px; color: var(--ink);">פרקי אבות</h1>
@@ -24457,9 +24458,145 @@ body.offline-mode .app-container {
   justify-content: center;
   padding: 0;
   transition: transform 0.2s;
-" onmouseover="this.style.transform='scale(1.08)';"
-   onmouseout="this.style.transform='scale(1)';"
-   title="הערה מהירה" aria-label="פנקס מהיר">📝</button>
+  touch-action: none;
+" title="הערה מהירה — אפשר גם לגרור" aria-label="פנקס מהיר">📝</button>
+
+<script>
+// ============================================================================
+// 🎯 גרירה של כפתור הפנקס הצף — המשתמש יכול להזיז אותו לכל מקום
+// ============================================================================
+(function() {
+  const KEY = 'floatNotebookPos';
+  let btn = null;
+  let dragging = false;
+  let moved = false;
+  let startX = 0, startY = 0;
+  let btnStartLeft = 0, btnStartBottom = 0;
+
+  function init() {
+    btn = document.getElementById('floating-notebook-btn');
+    if (!btn) {
+      setTimeout(init, 200);
+      return;
+    }
+
+    // טען מיקום שמור (אם יש)
+    try {
+      const saved = localStorage.getItem(KEY);
+      if (saved) {
+        const pos = JSON.parse(saved);
+        if (pos && typeof pos.left === 'number' && typeof pos.bottom === 'number') {
+          // וודא שהכפתור עדיין נראה במסך הנוכחי
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const safeLeft = Math.max(8, Math.min(pos.left, w - 64));
+          const safeBottom = Math.max(8, Math.min(pos.bottom, h - 64));
+          btn.style.left = safeLeft + 'px';
+          btn.style.bottom = safeBottom + 'px';
+          btn.style.right = 'auto';
+          btn.style.top = 'auto';
+        }
+      }
+    } catch (e) {}
+
+    // אירועי עכבר
+    btn.addEventListener('mousedown', onStart);
+    btn.addEventListener('touchstart', onStart, { passive: false });
+  }
+
+  function getXY(e) {
+    if (e.touches && e.touches.length) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onStart(e) {
+    if (!btn) return;
+    dragging = true;
+    moved = false;
+    const xy = getXY(e);
+    startX = xy.x;
+    startY = xy.y;
+
+    const rect = btn.getBoundingClientRect();
+    btnStartLeft = rect.left;
+    btnStartBottom = window.innerHeight - rect.bottom;
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+  }
+
+  function onMove(e) {
+    if (!dragging || !btn) return;
+    const xy = getXY(e);
+    const dx = xy.x - startX;
+    const dy = xy.y - startY;
+
+    // אם זזנו יותר מ-5 פיקסלים, נחשב את זה גרירה
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      moved = true;
+      e.preventDefault();
+    }
+
+    if (moved) {
+      const newLeft = btnStartLeft + dx;
+      const newBottom = btnStartBottom - dy;
+
+      // הגבלות — לא לצאת מהמסך
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const clampedLeft = Math.max(8, Math.min(newLeft, w - 64));
+      const clampedBottom = Math.max(8, Math.min(newBottom, h - 64));
+
+      btn.style.left = clampedLeft + 'px';
+      btn.style.bottom = clampedBottom + 'px';
+      btn.style.right = 'auto';
+      btn.style.top = 'auto';
+    }
+  }
+
+  function onEnd(e) {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    document.removeEventListener('touchcancel', onEnd);
+
+    if (moved && btn) {
+      // שמור את המיקום החדש
+      try {
+        const left = parseInt(btn.style.left) || 16;
+        const bottom = parseInt(btn.style.bottom) || 100;
+        localStorage.setItem(KEY, JSON.stringify({ left, bottom }));
+      } catch (e) {}
+
+      // מנע פתיחה אם זזנו (כדי שלא יפתח את ההערה אחרי גרירה)
+      const handler = function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        btn.removeEventListener('click', handler, true);
+      };
+      btn.addEventListener('click', handler, true);
+      // הסרת ה-handler אחרי 300ms (במקרה שלא הופעל)
+      setTimeout(() => btn.removeEventListener('click', handler, true), 300);
+    }
+
+    dragging = false;
+    moved = false;
+  }
+
+  // הפעל ברגע שהדף מוכן
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 
 <script>
 // ============================================================================
@@ -33724,20 +33861,39 @@ function openParashaDrasha() {
   }
 
   modal.innerHTML = `
-    <!-- כותרת מסך (לא מודפסת) -->
+    <!-- כותרת מסך (לא מודפסת) — עם safe-area-inset-top לטלפונים עם notch -->
     <div class="no-print" style="
       position: sticky; top: 0; background: var(--bg, #fff);
-      padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.1);
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
       display: flex; align-items: center; gap: 12px; z-index: 10;
     ">
-      <button onclick="document.getElementById('parasha-drasha-modal').remove()" style="
+      <button onclick="document.getElementById('parasha-drasha-modal').remove()" aria-label="חזרה" style="
         background: rgba(0,0,0,0.05); border: none; border-radius: 50%;
         width: 36px; height: 36px; font-size: 20px; cursor: pointer;
+        flex-shrink: 0;
       ">→</button>
-      <div style="flex: 1;">
+      <div style="flex: 1; min-width: 0;">
         <div style="font-weight: bold; font-size: 16px; color: var(--ink);">דרשה לשולחן שבת</div>
         <div style="font-size: 12px; color: var(--ink-light);">${state.todayParasha.title || ''}</div>
       </div>
+      <!-- כפתור הדפסה בראש הדף — נגיש מיד ולא צריך לגלול -->
+      <button onclick="window.print()" aria-label="הדפס" title="הדפס" style="
+        background: linear-gradient(135deg, #B8860B 0%, #D4A437 100%);
+        border: none; border-radius: 12px;
+        padding: 8px 14px;
+        cursor: pointer;
+        color: #fff;
+        font-family: inherit;
+        font-weight: bold;
+        font-size: 14px;
+        display: inline-flex; align-items: center; gap: 6px;
+        box-shadow: 0 2px 8px rgba(184,134,11,0.3);
+        flex-shrink: 0;
+      ">
+        <span style="font-size: 16px;">🖨️</span>
+        <span>הדפס</span>
+      </button>
     </div>
 
     <!-- כותרת הדפסה: בסיעתא דשמיא + מקור -->
@@ -45379,7 +45535,7 @@ function _showQuickToast(text) {
 // Contact details are fixed and owned by the developer.
 const DEVELOPER_PHONE_INTL = '972525524228';   // International format for wa.me links (no leading 0)
 const DEVELOPER_EMAIL      = 'avieotok@gmail.com';
-const APP_VERSION          = 'v283.05.03f';
+const APP_VERSION          = 'v283.05.03k';
 
 // ========== ADMIN PANEL (hidden, 6-tap candle to unlock) ==========
 const ADMIN_DEFAULT_PASSWORD = 'avidan2026';
@@ -46562,6 +46718,7 @@ async function loadActivityForRange(range) {
     // Collect per-day stats
     const dayStats = []; // [{ date, total, registered, anonymous, users:[] }]
     const allRegisteredUsers = new Map(); // dedupe: userId → latest visit info
+    const allAnonymousUsers = new Map(); // dedupe anonymous: userId → latest visit info
 
     for (const [date, dayData] of Object.entries(allDays)) {
       if (date < startDate || date > endDate) continue;
@@ -46582,6 +46739,14 @@ async function loadActivityForRange(range) {
           allRegisteredUsers.set(v.userId, { ...v, lastDate: date });
         }
       });
+      // Dedupe anonymous users for the list
+      anon.forEach(v => {
+        if (!v.userId) return;
+        const existing = allAnonymousUsers.get(v.userId);
+        if (!existing || (v.visitedAt > existing.visitedAt)) {
+          allAnonymousUsers.set(v.userId, { ...v, lastDate: date });
+        }
+      });
     }
 
     dayStats.sort((a, b) => a.date.localeCompare(b.date));
@@ -46589,7 +46754,8 @@ async function loadActivityForRange(range) {
     // Aggregated counts
     const totalVisits = dayStats.reduce((s, d) => s + d.total, 0);
     const totalRegistered = allRegisteredUsers.size;
-    const totalAnonymous = dayStats.reduce((s, d) => s + d.anonymous, 0);
+    const totalAnonymousUnique = allAnonymousUsers.size;
+    const totalAnonymousVisits = dayStats.reduce((s, d) => s + d.anonymous, 0);
 
     // Render summary cards
     summaryEl.innerHTML = `
@@ -46603,15 +46769,23 @@ async function loadActivityForRange(range) {
         <div class="admin-activity-summary-value">${totalRegistered}</div>
         <div class="admin-activity-summary-label">משתמשים רשומים<br>שנכנסו</div>
       </div>
+      <div class="admin-activity-summary-card">
+        <div class="admin-activity-summary-icon">👤</div>
+        <div class="admin-activity-summary-value">${totalAnonymousUnique}</div>
+        <div class="admin-activity-summary-label">אנונימיים<br>(לא רשומים)</div>
+      </div>
     `;
 
-    // Render registered user list
-    listTitleEl.textContent = `משתמשים רשומים שנכנסו (${rangeLabel})`;
-    if (allRegisteredUsers.size === 0) {
-      listEl.innerHTML = '<div class="admin-activity-list-empty">לא נמצאו משתמשים רשומים בטווח הזה</div>';
+    // Render registered + anonymous user list
+    listTitleEl.textContent = `כל המשתמשים שנכנסו (${rangeLabel}) — ${allRegisteredUsers.size + allAnonymousUsers.size} משתמשים`;
+    if (allRegisteredUsers.size === 0 && allAnonymousUsers.size === 0) {
+      listEl.innerHTML = '<div class="admin-activity-list-empty">לא נמצאו משתמשים בטווח הזה</div>';
     } else {
-      const userArr = Array.from(allRegisteredUsers.values())
-        .sort((a, b) => (b.visitedAt || 0) - (a.visitedAt || 0));
+      // Combine and sort all users by visit time
+      const userArr = [
+        ...Array.from(allRegisteredUsers.values()).map(u => ({ ...u, _isRegistered: true })),
+        ...Array.from(allAnonymousUsers.values()).map(u => ({ ...u, _isRegistered: false }))
+      ].sort((a, b) => (b.visitedAt || 0) - (a.visitedAt || 0));
       listEl.innerHTML = userArr.map(u => {
         const time = u.visitedAt
           ? new Date(u.visitedAt).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })
@@ -46624,10 +46798,14 @@ async function loadActivityForRange(range) {
         const safeUserId   = (u.userId || '').replace(/[\\'"]/g, '');
         const safeName     = (u.name || '').replace(/[\\'"]/g, '');
         const safePhone    = (u.phone || '').replace(/[\\'"]/g, '');
+        const isAnon       = !u._isRegistered;
+        const displayName  = isAnon ? '👤 משתמש אנונימי' : (u.name || 'ללא שם');
+        const userIdShort  = (u.userId || '').slice(-6);
         return `
-          <div class="admin-activity-row" data-userid="${escapeHtml(u.userId || '')}">
+          <div class="admin-activity-row" data-userid="${escapeHtml(u.userId || '')}" style="${isAnon ? 'opacity: 0.85;' : ''}">
             <div class="admin-activity-row-name">
-              <strong>${escapeHtml(u.name || 'ללא שם')}</strong>
+              <strong>${escapeHtml(displayName)}</strong>
+              ${isAnon ? `<span style="background: rgba(107,91,149,0.15); color: #6B5B95; padding: 2px 8px; border-radius: 8px; font-size: 11px; margin-right: 6px;">לא רשום · ${escapeHtml(userIdShort)}</span>` : ''}
               <div class="admin-activity-row-info">
                 ${u.phone ? '📱 ' + (waLink ? '<a href="' + waLink + '" target="_blank" style="color:var(--gold);">' + escapeHtml(u.phone) + '</a>' : escapeHtml(u.phone)) : ''}
               </div>
@@ -46638,7 +46816,7 @@ async function loadActivityForRange(range) {
             ${u.streak ? `<div class="admin-activity-row-streak">🔥 ${u.streak}</div>` : ''}
             <div class="admin-activity-row-time">${time}</div>
             <button class="admin-activity-row-detail-btn"
-                    onclick="showUserActivityDetail('${safeUserId}', '${safeName}', '${safePhone}')"
+                    onclick="showUserActivityDetail('${safeUserId}', '${safeName || (isAnon ? 'אנונימי' : '')}', '${safePhone}')"
                     title="צפה בפעילות מפורטת"
                     style="background: linear-gradient(135deg, #1E3A5F, #2C5282); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
               📋 צפה בפעילות
@@ -49932,13 +50110,63 @@ async function renderUserInbox() {
   }
 
   listEl.innerHTML = _userInboxMessages.map(m => `
-    <div class="inbox-item ${m.read ? '' : 'is-unread'}" onclick="openInboxItem('${m.id}')">
-      <div class="inbox-item-title">${escapeHtml(m.title || '(ללא כותרת)')}</div>
-      <div class="inbox-item-date">${m.createdAt ? new Date(m.createdAt).toLocaleString('he-IL') : ''}</div>
-      <div class="inbox-item-text">${escapeHtml(m.body || '')}</div>
+    <div class="inbox-item ${m.read ? '' : 'is-unread'}" style="position: relative;">
+      <button onclick="event.stopPropagation(); _deleteInboxItem('${m.id}')" aria-label="מחק הודעה" title="מחק הודעה" style="
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(220,38,38,0.1);
+        color: #DC2626;
+        border: 1px solid rgba(220,38,38,0.25);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+      ">🗑️</button>
+      <div onclick="openInboxItem('${m.id}')" style="cursor: pointer; padding-left: 44px;">
+        <div class="inbox-item-title">${escapeHtml(m.title || '(ללא כותרת)')}</div>
+        <div class="inbox-item-date">${m.createdAt ? new Date(m.createdAt).toLocaleString('he-IL') : ''}</div>
+        <div class="inbox-item-text">${escapeHtml(m.body || '')}</div>
+      </div>
     </div>
   `).join('');
 }
+
+// 🗑️ מחיקת הודעה מתיבת ההודעות של המשתמש
+// המחיקה היא רק מה-userInbox של המשתמש — ההודעה עצמה ב-devMessages נשארת
+async function _deleteInboxItem(msgId) {
+  if (!msgId || !window.FB_READY || !state?.userId) return;
+
+  const msg = _userInboxMessages.find(m => m.id === msgId);
+  const title = msg?.title || 'ההודעה';
+
+  // אישור לפני מחיקה
+  if (!confirm(`למחוק את "${title}"?\n\nהמחיקה תסיר את ההודעה מתיבת הדואר שלך.`)) return;
+
+  try {
+    await window.FB.remove(`userInbox/${state.userId}/${msgId}`);
+
+    // עדכון מקומי
+    _userInboxMessages = _userInboxMessages.filter(m => m.id !== msgId);
+
+    // רענון תצוגה
+    renderUserInbox();
+
+    // עדכון badge של הודעות לא נקראות
+    const unread = _userInboxMessages.filter(m => !m.read).length;
+    _updateInboxBadge(unread);
+
+  } catch (e) {
+    console.error('[inbox-delete]', e);
+    alert('❌ שגיאה במחיקה: ' + (e?.message || 'נסה שוב'));
+  }
+}
+window._deleteInboxItem = _deleteInboxItem;
 
 // Tapping a list item marks it as read (doesn't open a separate screen — the
 // whole body is already visible in the card)
